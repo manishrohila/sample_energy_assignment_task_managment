@@ -1,12 +1,13 @@
 const Task = require('../models/Task');
 const mongoose = require('mongoose');
-
+const io = require('../server').io; 
 // Create a new task
 exports.createTask = async (req, res) => {
   try {
     const { title, description, priority, dueDate, assignedTo, team, dependencies } = req.body;
     const task = new Task({ title, description, priority, dueDate, assignedTo, team, dependencies });
     await task.save();
+    io.emit('taskCreated', task);
     res.status(201).json(task);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -56,6 +57,7 @@ exports.updateTaskCompletion = async (req, res) => {
 
     task.isComplete = !task.isComplete;
     await task.save();
+    io.emit('taskUpdated', task);
     res.status(200).json(task);
   } catch (error) {
     res.status(500).json({ message: error.message });
